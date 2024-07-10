@@ -1,16 +1,11 @@
 import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import nodemailer from "nodemailer";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import "dayjs/locale/pt-br";
-
 import { z } from "zod";
-import { prisma } from "../lib/prisma";
-import dayjs from "dayjs";
-import { getMailClinet } from "../lib/mail";
 
-dayjs.locale("pt-br");
-dayjs.extend(localizedFormat);
+import { dayjs } from "../lib/dayjs";
+import { prisma } from "../lib/prisma";
+import { getMailClinet } from "../lib/mail";
 
 export async function createTrip(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post('/trips', {
@@ -41,15 +36,17 @@ export async function createTrip(app: FastifyInstance) {
         starts_at,
         ends_at,
         participants: {
-          createMany: [
-            {
-              name: owner_name,
-              email: owner_email,
-              is_owner: true,
-              is_confirmed: true
-            },
-            ...emails_to_invite.map(email => ({ email }))
-          ],
+          createMany: {
+            data: [
+              {
+                name: owner_name,
+                email: owner_email,
+                is_owner: true,
+                is_confirmed: true
+              },
+              ...emails_to_invite.map(email => ({ email }))
+            ]
+          },
         }
       }
     });
